@@ -370,7 +370,7 @@ class Supplies(tk.Frame):
         eunit.grid(row=0, column=5)
 
 
-        add = tk.Button(lower, text="Add Item", font=LARGE_FONT, command=add)
+        add = tk.Button(lower, text="Add Order", font=LARGE_FONT, command=add)
         add.grid(row=2, column=0, padx=4, pady=5)
         modify = tk.Button(lower, text="Update", font=LARGE_FONT, command=update)
         modify.grid(row=2, column=1, padx=4)
@@ -606,7 +606,7 @@ class Supplier(tk.Frame):
         address_entry = tk.Entry(lower)
         address_entry.grid(row=1, column=3)
 
-        add = tk.Button(lower, text="Add Order", font=LARGE_FONT, command=add)
+        add = tk.Button(lower, text="Add Supplier", font=LARGE_FONT, command=add)
         add.grid(row=2, column=0, padx=4, pady=5)
         modify = tk.Button(lower, text="Update", font=LARGE_FONT, command=update)
         modify.grid(row=2, column=1, padx=4)
@@ -885,18 +885,18 @@ class Menu(tk.Frame):
         my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=14)
 
         # Defining Columns
-        my_tree['columns'] = ('Order No.', 'Time', 'Date')
+        my_tree['columns'] = ('CoffeeID', 'Coffee Type')
 
         # Formatting Column
         my_tree.column("#0", stretch=tk.NO, width=0)
-        my_tree.column("Order No.", width=125, anchor=tk.W)
-        my_tree.column("Time", width=100, anchor=tk.W)
-        my_tree.column("Date", width=100, anchor=tk.W)
+        my_tree.column("CoffeeID", width=100, anchor=tk.W)
+        my_tree.column("Coffee Type", width=150, anchor=tk.W)
+
 
         # Create Headings
-        my_tree.heading("Order No.", text='Order No.', anchor=tk.CENTER)
-        my_tree.heading("Time", text='Time', anchor=tk.CENTER)
-        my_tree.heading("Date", text='Date', anchor=tk.CENTER)
+        my_tree.heading("CoffeeID", text='CoffeeID', anchor=tk.CENTER)
+        my_tree.heading("Coffee Type", text='Coffee Type', anchor=tk.CENTER)
+
 
         # Display TreeView
         my_tree.pack()
@@ -920,17 +920,17 @@ class Menu(tk.Frame):
         my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=12)
 
         # Defining Columns
-        my_tree2['columns'] = ('Coffee Name', 'Size', 'Qty')
+        my_tree2['columns'] = ('Item Code', 'Item Name', 'Qty')
 
         # Formatting Column
         my_tree2.column("#0", stretch=tk.NO, width=0)
-        my_tree2.column("Coffee Name", width=125, anchor=tk.W)
-        my_tree2.column("Size", width=75, anchor=tk.W)
+        my_tree2.column("Item Code", width=100, anchor=tk.W)
+        my_tree2.column("Item Name", width=150, anchor=tk.W)
         my_tree2.column("Qty", width=100, anchor=tk.W)
 
         # Create Headings
-        my_tree2.heading("Coffee Name", text='Coffee Name', anchor=tk.CENTER)
-        my_tree2.heading("Size", text='Size', anchor=tk.CENTER)
+        my_tree2.heading("Item Code", text='Item Code', anchor=tk.CENTER)
+        my_tree2.heading("Item Name", text='Item Name', anchor=tk.CENTER)
         my_tree2.heading("Qty", text='Qty', anchor=tk.CENTER)
 
         # Display TreeView
@@ -968,13 +968,13 @@ class Menu(tk.Frame):
         bottomSide = tk.Frame(self)
         bottomSide.grid(row=5, column=0, columnspan=6)
 
-        add_ord = tk.Button(bottomSide, text="Add Order", font=LARGE_FONT, command=AddOrder)
+        add_ord = tk.Button(bottomSide, text="Add Coffee", font=LARGE_FONT, command=AddOrder)
         add_ord.grid(row=0, column=0, padx=5)
 
-        upd_ord = tk.Button(bottomSide, text="Update Order", font=LARGE_FONT, command=UpdateOrder)
+        upd_ord = tk.Button(bottomSide, text="Update Coffee", font=LARGE_FONT, command=UpdateOrder)
         upd_ord.grid(row=0, column=1, padx=5)
 
-        del_ord = tk.Button(bottomSide, text="Delete Order", font=LARGE_FONT, command=DeleteOrder)
+        del_ord = tk.Button(bottomSide, text="Delete Coffee", font=LARGE_FONT, command=DeleteOrder)
         del_ord.grid(row=0, column=2, padx=5)
 
 app = ImsCoffee()
