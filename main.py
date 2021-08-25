@@ -12,6 +12,7 @@ class ImsCoffee(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        self.title("Inventory Management System")
         container = tk.Frame(self)
 
         container.pack(side="top", fill="both", expand=True)
@@ -21,7 +22,7 @@ class ImsCoffee(tk.Tk):
 
         self.frames = {}
 
-        for F in (Menu, History, Inventory, Order):
+        for F in (Supplies, Supplier, Inventory, Menu):
             frame = F(container, self)
 
             self.frames[F] = frame
@@ -35,12 +36,12 @@ class ImsCoffee(tk.Tk):
         frame.tkraise()
 
 
-class Menu(tk.Frame):
+class Supplies(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        label = tk.Label(self, text="Menu", font=LARGE_FONT, bg = "#98EFDA")
+        label = tk.Label(self, text="Supplies", font=LARGE_FONT, bg="#98EFDA")
         label.grid(row=0, column=0, columnspan=2, pady=10, padx=50, sticky='w')
 
         """button = tk.Button(self, text="Visit Page 1",
@@ -50,7 +51,7 @@ class Menu(tk.Frame):
         button2 = tk.Button(self, text="Visit Page 2",
                             command=lambda: controller.show_frame(PageTwo))
         button2.grid(row=3, column=0,)"""
-        def dbSetup():
+        def dbSetup2():
             # initiate or connects data base
             connect = sqlite3.connect('IMS.db')
             cursor = connect.cursor()
@@ -74,10 +75,21 @@ class Menu(tk.Frame):
 
             connect.close()
 
-        def addProduct():
+        def dbSetup():
+            # initiate or connects data base
+            connect = sqlite3.connect('IMS.db')
+            cursor = connect.cursor()
+            # create table
+            cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS "Orders"(
+                    time INT NOT NULL,
+                    date TEXT NOT NULL,
+                    order_unit INT NOT NULL,
+                    quantity TEXT NOT NULL
+                    )
+                """)
 
-
-            return
+            connect.close()
 
         # add database
         dbSetup()
@@ -90,28 +102,36 @@ class Menu(tk.Frame):
         # Coffee TreeView
         # Frame for TreeView and scroll
         tree_frame = tk.Frame(self)
-        tree_frame.grid(row=1, column=3, columnspan=3, pady=10)
+        tree_frame.grid(row=1, column=0, columnspan=6, padx=20, pady=10)
 
         # scroll
         tree_scroll = tk.Scrollbar(tree_frame)
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=16)
+        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=14)
 
         # Defining Columns
-        my_tree['columns'] = ('CoffeeID', 'Type', 'Quantity')
+        my_tree['columns'] = ('Item Name', 'Supplier Name', 'Price', 'Time', 'Date', 'Qty', 'Unit')
 
         # Formatting Column
         my_tree.column("#0", stretch=tk.NO, width=0)
-        my_tree.column("CoffeeID", width=150, anchor=tk.W)
-        my_tree.column("Type", width=200, anchor=tk.W)
-        my_tree.column("Quantity", width=150, anchor=tk.W)
+        my_tree.column("Item Name", width=125, anchor=tk.W)
+        my_tree.column("Supplier Name", width=140, anchor=tk.W)
+        my_tree.column("Price", width=75, anchor=tk.W)
+        my_tree.column("Time", width=100, anchor=tk.W)
+        my_tree.column("Date", width=100, anchor=tk.W)
+        my_tree.column("Qty", width=50, anchor=tk.W)
+        my_tree.column("Unit", width=75, anchor=tk.W)
 
         # Create Headings
-        my_tree.heading("CoffeeID", text='CoffeeID', anchor=tk.CENTER)
-        my_tree.heading("Type", text='Type', anchor=tk.CENTER)
-        my_tree.heading("Quantity", text='Quantity', anchor=tk.CENTER)
+        my_tree.heading("Item Name", text='Item Name', anchor=tk.CENTER)
+        my_tree.heading("Supplier Name", text='Supplier Name', anchor=tk.CENTER)
+        my_tree.heading("Price", text='Price', anchor=tk.CENTER)
+        my_tree.heading("Time", text='Time', anchor=tk.CENTER)
+        my_tree.heading("Date", text='Date', anchor=tk.CENTER)
+        my_tree.heading("Qty", text='Qty', anchor=tk.CENTER)
+        my_tree.heading("Unit", text='Unit', anchor=tk.CENTER)
 
         # Display TreeView
         my_tree.pack()
@@ -119,42 +139,168 @@ class Menu(tk.Frame):
         # configure scrollbar
         tree_scroll.config(command=my_tree.yview)
 
-        # Frame for left buttons
-        leftSide = tk.Frame(self)
-        leftSide.grid(row=1, column=0, columnspan=2)
-        
         # Frame for upper buttons
         upperSide = tk.Frame(self)
         upperSide.grid(row=0, column=2, columnspan=4, sticky='e')
 
-        # LeftSide Buttons
-        add_btn = tk.Button(leftSide, text="Add product", font=LARGE_FONT, command=addProduct)
-        add_btn.grid(row=0, column=0, columnspan=2, padx=20, pady=10)
-
-        del_btn = tk.Button(leftSide, text="Delete product", font=LARGE_FONT)
-        del_btn.grid(row=1, column=0, columnspan=2, padx=20, pady=10)
-
-        log_btn = tk.Button(leftSide, text="Sign out", font=LARGE_FONT)
-        log_btn.grid(row=2, column=0, columnspan=2, padx=20, pady=10)
-
         # upperSide buttons
-        his_btn = tk.Button(upperSide, text="History", font=LARGE_FONT, command=lambda: controller.show_frame(History))
+        his_btn = tk.Button(upperSide, text="Supplier", font=LARGE_FONT,
+                            command=lambda: controller.show_frame(Supplier))
         his_btn.grid(row=0, column=0, padx=10)
 
         inv_btn = tk.Button(upperSide, text="Inventory", font=LARGE_FONT,
                             command=lambda: controller.show_frame(Inventory))
         inv_btn.grid(row=0, column=1, padx=10)
 
-        ord_btn = tk.Button(upperSide, text="Order", font=LARGE_FONT, command=lambda: controller.show_frame(Order))
-        ord_btn.grid(row=0, column=2, padx=10)
+        menu_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
+        menu_btn.grid(row=0, column=2, padx=10)
 
 
-class History(tk.Frame):
+class Supplier(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        label = tk.Label(self, text="History", font=LARGE_FONT, bg="#98EFDA")
+        def dbSetup():
+            # initiate or connects data base
+            connect = sqlite3.connect('IMS.db')
+            cursor = connect.cursor()
+            # create table
+            cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS "Supplier"(
+                    supplier_id INT,
+                    supplier_name TEXT NOT NULL,
+                    contact_number INT,
+                    address TEXT NOT NULL,
+                    PRIMARY KEY (supplier_id)
+
+                    )
+                """)
+            connect.close()
+
+        def displaydata():
+            conn = sqlite3.connect('IMS.db')
+
+            c = conn.cursor()
+
+            c.execute("SELECT * FROM Supplier")
+            records = c.fetchall()
+
+            global count
+            count = 0
+
+            for record in records:
+                if count % 2 == 0:
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],
+                                                                                       record[3]),
+                                   tags=('evenrow',))
+                else:
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],
+                                                                                       record[3]),
+                                   tags=('oddrow',))
+                count += 1
+
+            return
+
+        def delete_data():
+            for record in my_tree.get_children():
+                my_tree.delete(record)
+
+        def add():
+            if supid_entry.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif supname_entry.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif contact_entry.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif address_entry.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+
+            # connect the database
+            conn = sqlite3.connect('IMS.db')
+            c = conn.cursor()
+
+            c.execute("INSERT INTO Supplier VALUES (:supplier_id, :supplier_name, :contact_number, :address)",
+                      {
+                          'supplier_id': supid_entry.get(),
+                          'supplier_name': supname_entry.get(),
+                          'contact_number': contact_entry.get(),
+                          'address': address_entry.get(),
+                      }
+                      )
+
+            # Commit changes
+            conn.commit()
+
+            # Close Connection
+            conn.close()
+
+            delete_data()
+            displaydata()
+
+            return
+
+        def update():
+
+            conn = sqlite3.connect('IMS.db')
+            c = conn.cursor()
+            data1 = supid_entry.get()
+            data2 = supname_entry.get()
+            data3 = contact_entry.get()
+            data4 = address_entry.get()
+
+            selected = my_tree.selection()
+            my_tree.item(selected, values=(data1, data2, data3, data4))
+            c.execute(
+                "UPDATE Supplier set  supplier_id=?, supplier_name=?, contact_number=?, address=? WHERE supplier_id=?",
+                (data1, data2, data3, data4, data1))
+
+            conn.commit()
+            conn.close()
+
+            delete_data()
+            displaydata()
+
+        def delete():
+            if not messagebox.askyesno("Delete Confirmation", "Are you sure?"):
+                return
+            else:
+                conn = sqlite3.connect("IMS.db")
+                c = conn.cursor()
+                selected = my_tree.focus()
+                values = my_tree.item(selected, 'values')
+
+                c.execute("DELETE from Supplier WHERE supplier_id=?", (values[0],))
+
+                conn.commit()
+                conn.close()
+
+            delete_data()
+            displaydata()
+
+        def clear():
+            supid_entry.delete(0, END)
+            supname_entry.delete(0, END)
+            contact_entry.delete(0, END)
+            address_entry.delete(0, END)
+
+        def select_record(e):
+            supid_entry.delete(0, END)
+            supname_entry.delete(0, END)
+            contact_entry.delete(0, END)
+            address_entry.delete(0, END)
+
+            pick = my_tree.focus()
+            value = my_tree.item(pick, 'value')
+
+            supid_entry.insert(0, value[0])
+            supname_entry.insert(0, value[1])
+            contact_entry.insert(0, value[2])
+            address_entry.insert(0, value[3])
+
+
+
+        label = tk.Label(self, text="Supplier", font=LARGE_FONT, bg="#98EFDA")
         label.grid(row=0, column=0, columnspan=2, pady=10, padx=40, sticky='w')
 
         # Frame for table
@@ -169,27 +315,24 @@ class History(tk.Frame):
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=16)
+        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=12)
 
         # Defining Columns
-        my_tree['columns'] = ('Transaction ID', 'Order', 'Size', 'Quantity', 'Date', 'Time')
+        my_tree['columns'] = ('SupplierID', 'Supplier Name', 'Contact No.', 'Address')
 
         # Formatting Column
         my_tree.column("#0", stretch=tk.NO, width=0)
-        my_tree.column("Transaction ID", width=100, anchor=tk.W)
-        my_tree.column("Order", width=150, anchor=tk.W)
-        my_tree.column("Size", width=60, anchor=tk.W)
-        my_tree.column("Quantity", width=80, anchor=tk.W)
-        my_tree.column("Date", width=140, anchor=tk.W)
-        my_tree.column("Time", width=120, anchor=tk.W)
+        my_tree.column("SupplierID", width=80, anchor=tk.W)
+        my_tree.column("Supplier Name", width=150, anchor=tk.W)
+        my_tree.column("Contact No.", width=125, anchor=tk.W)
+        my_tree.column("Address", width=300, anchor=tk.W)
 
         # Create Headings
-        my_tree.heading("Transaction ID", text='TransactionID', anchor=tk.CENTER)
-        my_tree.heading("Order", text='Order', anchor=tk.CENTER)
-        my_tree.heading("Size", text='Size', anchor=tk.CENTER)
-        my_tree.heading("Quantity", text='Quantity', anchor=tk.CENTER)
-        my_tree.heading("Date", text='Date', anchor=tk.CENTER)
-        my_tree.heading("Time", text='Time', anchor=tk.CENTER)
+        my_tree.heading("SupplierID", text='SupplierID', anchor=tk.CENTER)
+        my_tree.heading("Supplier Name", text='Supplier Name', anchor=tk.CENTER)
+        my_tree.heading("Contact No.", text='Contact No.', anchor=tk.CENTER)
+        my_tree.heading("Address", text='Address', anchor=tk.CENTER)
+
 
         # Display TreeView
         my_tree.pack()
@@ -202,15 +345,53 @@ class History(tk.Frame):
         upperSide.grid(row=0, column=2, columnspan=4, sticky='e')
 
         # upperSide buttons
-        men_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
+        men_btn = tk.Button(upperSide, text="Supplies", font=LARGE_FONT, command=lambda: controller.show_frame(Supplies))
         men_btn.grid(row=0, column=0, padx=10)
 
         inv_btn = tk.Button(upperSide, text="Inventory", font=LARGE_FONT,
                             command=lambda: controller.show_frame(Inventory))
         inv_btn.grid(row=0, column=1, padx=10)
 
-        ord_btn = tk.Button(upperSide, text="Order", font=LARGE_FONT, command=lambda: controller.show_frame(Order))
+        ord_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
         ord_btn.grid(row=0, column=2, padx=10)
+
+        # Entries and Labels
+        # Frame for ^
+        lower = tk.Frame(self)
+        lower.grid(row=2, column=0, columnspan=8)
+
+        supid_lbl = tk.Label(lower, text="SupplierID")
+        supid_lbl.grid(row=0, column=0)
+        supname_lbl = tk.Label(lower, text="Supplier Name")
+        supname_lbl.grid(row=0, column=2)
+        contact_lbl = tk.Label(lower, text="Contact No.")
+        contact_lbl.grid(row=1, column=0)
+        address_lbl = tk.Label(lower, text="Address")
+        address_lbl.grid(row=1, column=2)
+
+        supid_entry = tk.Entry(lower)
+        supid_entry.grid(row=0, column=1, padx=5)
+        supname_entry = tk.Entry(lower)
+        supname_entry.grid(row=0, column=3)
+        contact_entry = tk.Entry(lower)
+        contact_entry.grid(row=1, column=1)
+        address_entry = tk.Entry(lower)
+        address_entry.grid(row=1, column=3)
+
+        add = tk.Button(lower, text="Add Item", font=LARGE_FONT, command=add)
+        add.grid(row=2, column=0, padx=4, pady=5)
+        modify = tk.Button(lower, text="Update", font=LARGE_FONT, command=update)
+        modify.grid(row=2, column=1, padx=4)
+        delete = tk.Button(lower, text="Delete", font=LARGE_FONT, command=delete)
+        delete.grid(row=2, column=2, padx=4)
+        clear = tk.Button(lower, text="Clear", font=LARGE_FONT, command=clear)
+        clear.grid(row=2, column=3, padx=4)
+
+        dbSetup()
+        displaydata()
+
+        my_tree.bind("<ButtonRelease-1>", select_record)
+
 
 
 class Inventory(tk.Frame):
@@ -228,9 +409,9 @@ class Inventory(tk.Frame):
             cursor.execute("""
                     CREATE TABLE IF NOT EXISTS "Inventory"(
                     item_code INT,
-                    item_type TEXT,
                     item_name TEXT NOT NULL,
                     quantity INT,
+                    unit TEXT NOT NULL,
                     PRIMARY KEY (item_code)
 
                     )
@@ -312,7 +493,7 @@ class Inventory(tk.Frame):
             selected = my_tree.selection()
             my_tree.item(selected, values=(data1, data2, data3, data4))
             c.execute(
-                "UPDATE Inventory set  item_code=?, item_type=?, item_name=?, quantity=?,  WHERE item_code=?",
+                "UPDATE Inventory set  item_code=?, item_type=?, item_name=?, quantity=? WHERE item_code=?",
                 (data1, data2, data3, data4, data1))
 
             conn.commit()
@@ -343,6 +524,20 @@ class Inventory(tk.Frame):
             tentry.delete(0, END)
             nentry.delete(0, END)
             qty2.delete(0, END)
+
+        def select_record(e):
+            centry.delete(0, END)
+            tentry.delete(0, END)
+            nentry.delete(0, END)
+            qty2.delete(0, END)
+
+            pick = my_tree.focus()
+            value = my_tree.item(pick, 'value')
+
+            centry.insert(0, value[0])
+            tentry.insert(0, value[1])
+            nentry.insert(0, value[2])
+            qty2.insert(0, value[3])
 
 
         # connect to database
@@ -393,14 +588,14 @@ class Inventory(tk.Frame):
         upperSide.grid(row=0, column=2, columnspan=4, sticky='e')
 
         # upperSide buttons
-        men_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
+        men_btn = tk.Button(upperSide, text="Supplies", font=LARGE_FONT, command=lambda: controller.show_frame(Supplies))
         men_btn.grid(row=0, column=0, padx=10)
 
-        his_btn = tk.Button(upperSide, text="History", font=LARGE_FONT,
-                            command=lambda: controller.show_frame(History))
+        his_btn = tk.Button(upperSide, text="Supplier", font=LARGE_FONT,
+                            command=lambda: controller.show_frame(Supplier))
         his_btn.grid(row=0, column=1, padx=10)
 
-        ord_btn = tk.Button(upperSide, text="Order", font=LARGE_FONT, command=lambda: controller.show_frame(Order))
+        ord_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
         ord_btn.grid(row=0, column=2, padx=10)
 
         # Frame for Entries
@@ -440,11 +635,15 @@ class Inventory(tk.Frame):
 
         displaydata()
 
-class Order(tk.Frame):
+        # Bindings
+        # my_tree.bind("<ButtonRelease-1>", select_record)
+        my_tree.bind("<ButtonRelease-1>", select_record)
+
+class Menu(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Order", font=LARGE_FONT, bg="#98EFDA")
+        label = tk.Label(self, text="Menu", font=LARGE_FONT, bg="#98EFDA")
         label.grid(row=0, column=0, columnspan=2, pady=10, padx=40, sticky='w')
 
         tree_frame = tk.Frame(self)
@@ -482,7 +681,7 @@ class Order(tk.Frame):
         tree_frame2 = tk.Frame(self)
         tree_frame2.grid(row=2, column=4, columnspan=2, rowspan=3, pady=10, padx=10)
 
-        comp = tk.Label(self, text="Order Component", font=LARGE_FONT, bg="#98EFDA" )
+        comp = tk.Label(self, text="Coffee Component", font=LARGE_FONT, bg="#98EFDA" )
         comp.grid(row=1, column=4)
 
         # scroll
@@ -502,9 +701,9 @@ class Order(tk.Frame):
         my_tree2.column("Qty", width=100, anchor=tk.W)
 
         # Create Headings
-        my_tree2.heading("Coffee Name", text='Order No.', anchor=tk.CENTER)
-        my_tree2.heading("Size", text='Time', anchor=tk.CENTER)
-        my_tree2.heading("Qty", text='Date', anchor=tk.CENTER)
+        my_tree2.heading("Coffee Name", text='Coffee Name', anchor=tk.CENTER)
+        my_tree2.heading("Size", text='Size', anchor=tk.CENTER)
+        my_tree2.heading("Qty", text='Qty', anchor=tk.CENTER)
 
         # Display TreeView
         my_tree2.pack()
@@ -527,11 +726,11 @@ class Order(tk.Frame):
         upperSide.grid(row=0, column=2, columnspan=4, sticky='e')
 
         # upperSide buttons
-        men_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
+        men_btn = tk.Button(upperSide, text="Supplies", font=LARGE_FONT, command=lambda: controller.show_frame(Supplies))
         men_btn.grid(row=0, column=1, padx=10)
 
-        his_btn = tk.Button(upperSide, text="History", font=LARGE_FONT,
-                            command=lambda: controller.show_frame(History))
+        his_btn = tk.Button(upperSide, text="Supplier", font=LARGE_FONT,
+                            command=lambda: controller.show_frame(Supplier))
         his_btn.grid(row=0, column=2, padx=10)
 
         inv_btn = tk.Button(upperSide, text="Inventory", font=LARGE_FONT, command=lambda: controller.show_frame(Inventory))
@@ -552,6 +751,7 @@ class Order(tk.Frame):
 
 app = ImsCoffee()
 app.geometry("720x440")
+top = None
 app.mainloop()
 
 """if __name__ == "__main__":
