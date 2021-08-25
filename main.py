@@ -150,7 +150,7 @@ class Supplies(tk.Frame):
             current_time = date.strftime("%H:%M:%S")
 
             c.execute("INSERT INTO Orders VALUES (:item_name, :supplier_name, :price, :time, :date, "
-                      ":quantity, :unit)",
+                      ":quantity, :unit, :recieved)",
                       {
                           'item_name': itemname_entry.get(),
                           'supplier_name': supname_entry.get(),
@@ -159,6 +159,7 @@ class Supplies(tk.Frame):
                           'date': format_date,
                           'quantity': equantity.get(),
                           'unit': eunit.get(),
+                          'recieved':0,
                       }
                       )
 
@@ -243,17 +244,31 @@ class Supplies(tk.Frame):
             eunit.insert(0, value[6])
 
         def recieved():
-            
 
+            selected = my_tree.focus()
+            values = my_tree.item(selected, 'values')
 
             c = sqlite3.connect("IMS.db")
             cursor = c.cursor()
-            cursor.execute("""select recieved from Orders""")
+            cursor.execute("select recieved from Orders where time=?", ((values[3],)))
             exsa = cursor.fetchall()
-            if exsa == 0:
-                cursor.execute("""select quantity from Orders where """)
-
             print(exsa[0][0])
+
+
+            if exsa[0][0] == 0:
+                cursor.execute("select quantity from Orders where time=?", ((values[3],)))
+                hold = cursor.fetchall()[0][0]
+                cursor.execute("UPDATE Orders set recieved=?",("1"))
+                cursor.execute("SELECT quantity from Inventory where item_name=?",((values[0],)))
+                hold2 = cursor.fetchall()[0][0]
+                hold3 = int(hold)+int(hold2)
+                print(hold3)
+                cursor.execute("UPDATE Inventory SET quantity=? WHERE item_name=?", (int(hold3),values[0],))
+                c.commit()
+            else:
+                messagebox.showinfo("Notice", "Item/s already added to inventory.")
+
+
             return
 
 
@@ -783,6 +798,9 @@ class Inventory(tk.Frame):
             nentry.insert(0, value[2])
             qty2.insert(0, value[3])
 
+        def refresh():
+            delete_data()
+            displaydata()
 
         # connect to database
         dbSetup()
@@ -876,7 +894,10 @@ class Inventory(tk.Frame):
         delete.grid(row=2, column=2, padx=4)
         clear = tk.Button(lowerSide, text="Clear", font=LARGE_FONT, command=clear)
         clear.grid(row=2, column=3, padx=4)
+        refresh = tk.Button(lowerSide, text="Refresh", font=LARGE_FONT, command=refresh)
+        refresh.grid(row=2, column=4, padx=4)
 
+        delete_data()
         displaydata()
 
         # Bindings
