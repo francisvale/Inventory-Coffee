@@ -126,16 +126,16 @@ class Supplies(tk.Frame):
                 my_tree.delete(record)
 
         def add():
-            if itemname_entry.get() == '':
-                return messagebox.showwarning("Warning!", "You haven't inputted anything")
-            elif supname_entry.get() == '':
-                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            if itemname_entry.get() == '' or itemname_entry.get() == 'Select Item':
+                return messagebox.showwarning("Warning!", "Please input the appropriate data")
+            elif supname_entry.get() == '' or supname_entry.get() == 'Supplier Name':
+                return messagebox.showwarning("Warning!", "Please input the appropriate data")
             elif eprice.get() == '':
-                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+                return messagebox.showwarning("Warning!", "Please input the appropriate data")
             elif equantity.get() == '':
-                return messagebox.showwarning("Warning!", "You haven't inputted anything")
-            elif eunit.get() == '':
-                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+                return messagebox.showwarning("Warning!", "Please input the appropriate data")
+            elif eunit.get() == '' or eunit.get() == 'Select Unit':
+                return messagebox.showwarning("Warning!", "Please input the appropriate data")
 
 
             # connect the database
@@ -271,6 +271,30 @@ class Supplies(tk.Frame):
 
             return
 
+        def refresh():
+            # list for inventory names and supplier names
+            ex = sqlite3.connect('IMS.db')
+            x = ex.cursor()
+
+            x.execute("SELECT item_name FROM Inventory")
+            rec = x.fetchall()
+            itemname = []
+            for i in rec:
+                itemname.append(i[0])
+
+            x.execute("SELECT supplier_name from Supplier")
+            rec2 = x.fetchall()
+            suppliername = []
+            for i in rec2:
+                suppliername.append(i[0])
+
+            x.execute("SELECT unit from Inventory")
+            rec2 = x.fetchall()
+            units = []
+            for i in rec2:
+                if i not in units:
+                    units.append(i[0])
+
 
         # add database
         dbSetup()
@@ -347,10 +371,12 @@ class Supplies(tk.Frame):
             itemname.append(i[0])
 
         x.execute("SELECT supplier_name from Supplier")
-        rec2=x.fetchall()
+        rec2 = x.fetchall()
         suppliername = []
         for i in rec2:
             suppliername.append(i[0])
+
+        units = ["Cups", "Liters", 'Grams', 'Kilo']
 
 
         # Entries and Labels
@@ -374,7 +400,7 @@ class Supplies(tk.Frame):
 
         itemname_entry = ttk.Combobox(lower, width=18)
         itemname_entry.set("Select Item")
-        itemname_entry['values'] = itemname  # ("BSCS", "BSIT", "BSBA-B.ECON")
+        itemname_entry['values'] = itemname
         itemname_entry.grid(row=0, column=1)
 
         # supname_entry = tk.Entry(lower)
@@ -382,7 +408,7 @@ class Supplies(tk.Frame):
 
         supname_entry = ttk.Combobox(lower, width=18)
         supname_entry.set("Select Supplier")
-        supname_entry['values'] = suppliername  # ("BSCS", "BSIT", "BSBA-B.ECON")
+        supname_entry['values'] = suppliername
         supname_entry.grid(row=0, column=3)
 
         eprice = tk.Entry(lower)
@@ -395,7 +421,7 @@ class Supplies(tk.Frame):
 
         eunit = ttk.Combobox(lower, width=18)
         eunit.set("Select Unit")
-        eunit['values'] = ("Kilo", "Grams", "Liter", "Stick")
+        eunit['values'] = units
         eunit.grid(row=0, column=5)
 
 
@@ -407,8 +433,10 @@ class Supplies(tk.Frame):
         delete.grid(row=2, column=2, padx=4)
         clear = tk.Button(lower, text="Clear", font=LARGE_FONT, command=clear)
         clear.grid(row=2, column=3, padx=4)
-        recieved = tk.Button(lower, text="Recieved", font=LARGE_FONT, command=recieved)
+        recieved = tk.Button(lower, text="Refresh", font=LARGE_FONT, command=refresh)
         recieved.grid(row=2, column=4, padx=4)
+        recieved = tk.Button(lower, text="Recieved", font=LARGE_FONT, command=recieved)
+        recieved.grid(row=2, column=5, padx=4)
 
         displaydata()
 
@@ -720,12 +748,12 @@ class Inventory(tk.Frame):
             conn = sqlite3.connect('IMS.db')
             c = conn.cursor()
 
-            c.execute("INSERT INTO Inventory VALUES (:item_code, :item_type, :item_name, :quantity)",
+            c.execute("INSERT INTO Inventory VALUES (:item_code, :item_name, :quantity, :unit)",
                       {
                           'item_code': centry.get(),
-                          'item_type': tentry.get(),
-                          'item_name': nentry.get(),
-                          'quantity': qty2.get(),
+                          'item_name': tentry.get(),
+                          'quantity': nentry.get(),
+                          'unit': qty2.get(),
                       }
                       )
 
@@ -752,7 +780,7 @@ class Inventory(tk.Frame):
             selected = my_tree.selection()
             my_tree.item(selected, values=(data1, data2, data3, data4))
             c.execute(
-                "UPDATE Inventory set  item_code=?, item_type=?, item_name=?, quantity=? WHERE item_code=?",
+                "UPDATE Inventory set  item_code=?, item_name=?, quantity=?, unit=? WHERE item_code=?",
                 (data1, data2, data3, data4, data1))
 
             conn.commit()
@@ -811,7 +839,7 @@ class Inventory(tk.Frame):
 
         # Frame for table
 
-        # Student TreeView
+
         # Frame for TreeView and scroll
         tree_frame = tk.Frame(self)
         tree_frame.grid(row=1, column=0, columnspan=6, padx=20, pady=10)
@@ -824,20 +852,20 @@ class Inventory(tk.Frame):
         my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=12)
 
         # Defining Columns
-        my_tree['columns'] = ('Item Code', 'Item Type', 'Name', 'Quantity')
+        my_tree['columns'] = ('Item Code', 'Item Name', 'Quantity', 'Unit')
 
         # Formatting Column
         my_tree.column("#0", stretch=tk.NO, width=0)
         my_tree.column("Item Code", width=160, anchor=tk.W)
-        my_tree.column("Item Type", width=160, anchor=tk.W)
-        my_tree.column("Name", width=200, anchor=tk.W)
-        my_tree.column("Quantity", width=120, anchor=tk.W)
+        my_tree.column("Item Name", width=160, anchor=tk.W)
+        my_tree.column("Quantity", width=200, anchor=tk.W)
+        my_tree.column("Unit", width=120, anchor=tk.W)
 
         # Create Headings
         my_tree.heading("Item Code", text='Item Code', anchor=tk.CENTER)
-        my_tree.heading("Item Type", text='Item Type', anchor=tk.CENTER)
-        my_tree.heading("Name", text='Name', anchor=tk.CENTER)
+        my_tree.heading("Item Name", text='Item Name', anchor=tk.CENTER)
         my_tree.heading("Quantity", text='Quantity', anchor=tk.CENTER)
+        my_tree.heading("Unit", text='Unit', anchor=tk.CENTER)
 
         # Display TreeView
         my_tree.pack()
@@ -870,20 +898,27 @@ class Inventory(tk.Frame):
         centry = tk.Entry(lowerSide, borderwidth=3)
         centry.grid(row=0,column=1, padx=4)
 
-        itype = tk.Label(lowerSide, text="Item Type")
+        itype = tk.Label(lowerSide, text="Item Name")
         itype.grid(row=0, column=2, padx=4)
         tentry = tk.Entry(lowerSide, borderwidth=3)
         tentry.grid(row=0, column=3, padx=4)
 
-        iname = tk.Label(lowerSide, text="Item Name")
+        iname = tk.Label(lowerSide, text="Quantity")
         iname.grid(row=1, column=0, padx=4)
         nentry = tk.Entry(lowerSide, borderwidth=3)
         nentry.grid(row=1, column=1, padx=4)
 
-        qty = tk.Label(lowerSide, text="Item Quantity")
+        units = ["Cups", "Liters", 'Grams', 'Kilo']
+
+        qty = tk.Label(lowerSide, text="Unit")
         qty.grid(row=1, column=2, padx=4)
-        qty2 = tk.Entry(lowerSide, borderwidth=3)
-        qty2.grid(row=1, column=3, padx=4)
+        # qty2 = tk.Entry(lowerSide, borderwidth=3)
+        # qty2.grid(row=1, column=3, padx=4)
+
+        qty2 = ttk.Combobox(lowerSide, width=18)
+        qty2.set("Select Unit")
+        qty2['values'] = units
+        qty2.grid(row=1, column=3)
 
         # buttons
         add = tk.Button(lowerSide, text="Add Item", font=LARGE_FONT, command=add)
@@ -919,20 +954,22 @@ class Menu(tk.Frame):
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=14)
+        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=13)
 
         # Defining Columns
-        my_tree['columns'] = ('CoffeeID', 'Coffee Type')
+        my_tree['columns'] = ('CoffeeID', 'Coffee Name', "Size")
 
         # Formatting Column
         my_tree.column("#0", stretch=tk.NO, width=0)
-        my_tree.column("CoffeeID", width=100, anchor=tk.W)
-        my_tree.column("Coffee Type", width=150, anchor=tk.W)
+        my_tree.column("CoffeeID", width=75, anchor=tk.W)
+        my_tree.column("Coffee Name", width=150, anchor=tk.W)
+        my_tree.column("Size", width=75, anchor=tk.W)
 
 
         # Create Headings
         my_tree.heading("CoffeeID", text='CoffeeID', anchor=tk.CENTER)
-        my_tree.heading("Coffee Type", text='Coffee Type', anchor=tk.CENTER)
+        my_tree.heading("Coffee Name", text='Coffee Name', anchor=tk.CENTER)
+        my_tree.heading("Size", text='Size', anchor=tk.CENTER)
 
 
         # Display TreeView
@@ -944,7 +981,7 @@ class Menu(tk.Frame):
         # --------------------------------------
 
         tree_frame2 = tk.Frame(self)
-        tree_frame2.grid(row=2, column=4, columnspan=2, rowspan=3, pady=10, padx=10)
+        tree_frame2.grid(row=2, column=4, columnspan=2, rowspan=3, pady=10, padx=11)
 
         comp = tk.Label(self, text="Coffee Component", font=LARGE_FONT, bg="#98EFDA" )
         comp.grid(row=1, column=4)
@@ -954,16 +991,16 @@ class Menu(tk.Frame):
         tree_scroll2.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=12)
+        my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=10)
 
         # Defining Columns
         my_tree2['columns'] = ('Item Code', 'Item Name', 'Qty')
 
         # Formatting Column
         my_tree2.column("#0", stretch=tk.NO, width=0)
-        my_tree2.column("Item Code", width=100, anchor=tk.W)
+        my_tree2.column("Item Code", width=75, anchor=tk.W)
         my_tree2.column("Item Name", width=150, anchor=tk.W)
-        my_tree2.column("Qty", width=100, anchor=tk.W)
+        my_tree2.column("Qty", width=75, anchor=tk.W)
 
         # Create Headings
         my_tree2.heading("Item Code", text='Item Code', anchor=tk.CENTER)
@@ -977,14 +1014,87 @@ class Menu(tk.Frame):
         tree_scroll2.config(command=my_tree2.yview)
 
         # Division TreeView
-        def AddOrder():
+        def addcoffee():
+            open()
             return
 
-        def UpdateOrder():
+        def updatecoffee():
             return
 
-        def DeleteOrder():
+        def deletecoffee():
             return
+
+
+
+        def open():
+            global top
+            if top is not None:
+                top.destroy()
+
+            def displaydataInv():
+                conn = sqlite3.connect('IMS.db')
+
+                c = conn.cursor()
+
+                c.execute("SELECT * FROM Inventory")
+                records = c.fetchall()
+
+                global count
+                count = 0
+
+                for record in records:
+                    if count % 2 == 0:
+                        my_tree3.insert(parent='', index='end', iid=count, text='',
+                                        values=(record[0], record[1], record[2],
+                                                record[3]),
+                                        tags=('evenrow',))
+                    else:
+                        my_tree3.insert(parent='', index='end', iid=count, text='',
+                                        values=(record[0], record[1], record[2],
+                                                record[3]),
+                                        tags=('oddrow',))
+                    count += 1
+
+            top = Toplevel()
+            top.title('Coffee')
+            top.geometry('720x440')
+
+            # Student TreeView
+            # Frame for TreeView and scroll
+            tree_frame3 = tk.Frame(top)
+            tree_frame3.grid(row=1, column=0, columnspan=6, padx=20, pady=10)
+
+            # scroll
+            tree_scroll3 = tk.Scrollbar(tree_frame3)
+            tree_scroll3.pack(side=tk.RIGHT, fill=tk.Y)
+
+            # Add TreeView
+            my_tree3 = ttk.Treeview(tree_frame3, yscrollcommand=tree_scroll3.set, height=12)
+
+            # Defining Columns
+            my_tree3['columns'] = ('Item Code', 'Item Name', 'Quantity', 'Unit')
+
+            # Formatting Column
+            my_tree3.column("#0", stretch=tk.NO, width=0)
+            my_tree3.column("Item Code", width=160, anchor=tk.W)
+            my_tree3.column("Item Name", width=160, anchor=tk.W)
+            my_tree3.column("Quantity", width=200, anchor=tk.W)
+            my_tree3.column("Unit", width=120, anchor=tk.W)
+
+            # Create Headings
+            my_tree3.heading("Item Code", text='Item Code', anchor=tk.CENTER)
+            my_tree3.heading("Item Name", text='Item Name', anchor=tk.CENTER)
+            my_tree3.heading("Quantity", text='Quantity', anchor=tk.CENTER)
+            my_tree3.heading("Unit", text='Unit', anchor=tk.CENTER)
+
+            # Display TreeView
+            my_tree3.pack()
+
+            # configure scrollbar
+            tree_scroll.config(command=my_tree3.yview)
+
+            displaydataInv()
+
 
         # Frame for upper buttons
         upperSide = tk.Frame(self)
@@ -1003,16 +1113,39 @@ class Menu(tk.Frame):
 
         # frame for bottom buttons
         bottomSide = tk.Frame(self)
-        bottomSide.grid(row=5, column=0, columnspan=6)
+        bottomSide.grid(row=6, column=0, columnspan=6)
 
-        add_ord = tk.Button(bottomSide, text="Add Coffee", font=LARGE_FONT, command=AddOrder)
+        add_ord = tk.Button(bottomSide, text="Add Coffee", font=LARGE_FONT, command=addcoffee)
         add_ord.grid(row=0, column=0, padx=5)
 
-        upd_ord = tk.Button(bottomSide, text="Update Coffee", font=LARGE_FONT, command=UpdateOrder)
+        upd_ord = tk.Button(bottomSide, text="Update Coffee", font=LARGE_FONT, command=updatecoffee)
         upd_ord.grid(row=0, column=1, padx=5)
 
-        del_ord = tk.Button(bottomSide, text="Delete Coffee", font=LARGE_FONT, command=DeleteOrder)
+        del_ord = tk.Button(bottomSide, text="Delete Coffee", font=LARGE_FONT, command=deletecoffee)
         del_ord.grid(row=0, column=2, padx=5)
+
+        # frame for entries
+        lower = tk.Frame(self)
+        lower.grid(row=5, column=0, columnspan=6)
+
+        coffeeID = tk.Label(lower, text="coffeeID")
+        coffeeID.grid(row=0, column=0, padx=4)
+        coffee_name = tk.Label(lower, text="Coffee Name")
+        coffee_name.grid(row=0, column=2, padx=4)
+        size = tk.Label(lower, text="Size")
+        size.grid(row=0, column=4, padx=4)
+
+        size2 = ttk.Combobox(lower, width=18)
+        size2.set("Select Size")
+        size2['values'] = ("Small", "Medium", "Large")
+        size2.grid(row=0, column=5, pady=2)
+
+        coffeeIDe = Entry(lower, borderwidth=2)
+        coffeeIDe.grid(row=0, column=1, pady=2)
+        coffee_namee = Entry(lower, borderwidth=2)
+        coffee_namee.grid(row=0, column=3, pady=2)
+
+
 
 app = ImsCoffee()
 app.geometry("720x440")
