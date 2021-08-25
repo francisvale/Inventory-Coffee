@@ -1,7 +1,11 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, END
-# from PIL import ImageTk, Image
+import sys
+import time
+import calendar
+import random
+import datetime as dt
 import sqlite3
 from tkinter import messagebox
 
@@ -91,6 +95,154 @@ class Supplies(tk.Frame):
 
             connect.close()
 
+        def displaydata():
+            conn = sqlite3.connect('IMS.db')
+
+            c = conn.cursor()
+
+            c.execute("SELECT * FROM Orders")
+            records = c.fetchall()
+
+            global count
+            count = 0
+
+            for record in records:
+                if count % 2 == 0:
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],
+                                                                                       record[3], record[4],
+                                                                                       record[5], record[6]),
+                                   tags=('evenrow',))
+                else:
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],
+                                                                                       record[3], record[4],
+                                                                                       record[5], record[6]),
+                                   tags=('oddrow',))
+                count += 1
+
+            return
+
+        def delete_data():
+            for record in my_tree.get_children():
+                my_tree.delete(record)
+
+        def add():
+            if itemname_entry.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif supname_entry.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif eprice.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif equantity.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+            elif eunit.get() == '':
+                return messagebox.showwarning("Warning!", "You haven't inputted anything")
+
+
+            # connect the database
+            conn = sqlite3.connect('IMS.db')
+            c = conn.cursor()
+
+            # Gets date from host computer.
+            date = dt.datetime.now()
+            # Takes the date and formats it.
+            format_date = f"{date:%b %d %Y}"
+            # Takes the current time
+            current_time = date.strftime("%H:%M:%S")
+
+            c.execute("INSERT INTO Orders VALUES (:item_name, :supplier_name, :price, :time, :date, "
+                      ":quantity, :unit)",
+                      {
+                          'item_name': itemname_entry.get(),
+                          'supplier_name': supname_entry.get(),
+                          'price': eprice.get(),
+                          'time': current_time,
+                          'date': format_date,
+                          'quantity': equantity.get(),
+                          'unit': eunit.get(),
+                      }
+                      )
+
+            # Commit changes
+            conn.commit()
+
+            # Close Connection
+            conn.close()
+
+            delete_data()
+            displaydata()
+
+            return
+
+        def update():
+
+            # Gets date from host computer.
+            date = dt.datetime.now()
+            # Takes the date and formats it.
+            format_date = f"{date:%b %d %Y}"
+            # Takes the current time
+            current_time = date.strftime("%H:%M:%S")
+
+            conn = sqlite3.connect('IMS.db')
+            c = conn.cursor()
+            data1 = itemname_entry.get()
+            data2 = supname_entry.get()
+            data3 = eprice.get()
+            data4 = equantity.get()
+            data5 = eunit.get()
+
+            selected = my_tree.selection()
+            my_tree.item(selected, values=(data1, data2, data3, data4))
+            c.execute(
+                "UPDATE Orders set  item_name=?, supplier_name=?, price=?, quantity=?, unit=?",
+                (data1, data2, data3, data4, data5))
+
+            conn.commit()
+            conn.close()
+
+            delete_data()
+            displaydata()
+
+        def delete():
+            if not messagebox.askyesno("Delete Confirmation", "Are you sure?"):
+                return
+            else:
+                conn = sqlite3.connect("IMS.db")
+                c = conn.cursor()
+                selected = my_tree.focus()
+                values = my_tree.item(selected, 'values')
+
+                c.execute("DELETE from Orders where time=?", (values[3],))
+
+                conn.commit()
+                conn.close()
+
+            delete_data()
+            displaydata()
+
+        def clear():
+            itemname_entry.delete(0, END)
+            supname_entry.delete(0, END)
+            eprice.delete(0, END)
+            equantity.delete(0, END)
+            eunit.delete(0, END)
+
+        def select_record(e):
+            itemname_entry.delete(0, END)
+            supname_entry.delete(0, END)
+            eprice.delete(0, END)
+            equantity.delete(0, END)
+            eunit.delete(0, END)
+
+            pick = my_tree.focus()
+            value = my_tree.item(pick, 'value')
+
+            itemname_entry.insert(0, value[0])
+            supname_entry.insert(0, value[1])
+            eprice.insert(0, value[2])
+            equantity.insert(0, value[5])
+            eunit.insert(0, value[6])
+
+
         # add database
         dbSetup()
         # Create Style
@@ -109,7 +261,7 @@ class Supplies(tk.Frame):
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=14)
+        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=12)
 
         # Defining Columns
         my_tree['columns'] = ('Item Name', 'Supplier Name', 'Price', 'Time', 'Date', 'Qty', 'Unit')
@@ -154,6 +306,82 @@ class Supplies(tk.Frame):
 
         menu_btn = tk.Button(upperSide, text="Menu", font=LARGE_FONT, command=lambda: controller.show_frame(Menu))
         menu_btn.grid(row=0, column=2, padx=10)
+
+        #list for inventory names and supplier names
+        ex = sqlite3.connect('IMS.db')
+        x = ex.cursor()
+
+        x.execute("SELECT item_name FROM Inventory")
+        rec = x.fetchall()
+        itemname = []
+        for i in rec:
+            itemname.append(i[0])
+
+        x.execute("SELECT supplier_name from Supplier")
+        rec2=x.fetchall()
+        suppliername = []
+        for i in rec2:
+            suppliername.append(i[0])
+
+
+        # Entries and Labels
+        # Frame for ^
+        lower = tk.Frame(self)
+        lower.grid(row=2, column=0, columnspan=8)
+
+        itemname_lbl = tk.Label(lower, text="Item Name")
+        itemname_lbl.grid(row=0, column=0)
+        supname_lbl = tk.Label(lower, text="Supplier Name")
+        supname_lbl.grid(row=0, column=2)
+        price = tk.Label(lower, text="Price")
+        price.grid(row=1, column=0)
+        quantity = tk.Label(lower, text="Quantity")
+        quantity.grid(row=1, column=2)
+        unit = tk.Label(lower, text="Unit")
+        unit.grid(row=0, column=4)
+
+        # itemname_entry = tk.Entry(lower)
+        # itemname_entry.grid(row=0, column=1, padx=5)
+
+        itemname_entry = ttk.Combobox(lower, width=18)
+        itemname_entry.set("Select Item")
+        itemname_entry['values'] = itemname  # ("BSCS", "BSIT", "BSBA-B.ECON")
+        itemname_entry.grid(row=0, column=1)
+
+        # supname_entry = tk.Entry(lower)
+        # supname_entry.grid(row=0, column=3)
+
+        supname_entry = ttk.Combobox(lower, width=18)
+        supname_entry.set("Select Supplier")
+        supname_entry['values'] = suppliername  # ("BSCS", "BSIT", "BSBA-B.ECON")
+        supname_entry.grid(row=0, column=3)
+
+        eprice = tk.Entry(lower)
+        eprice.grid(row=1, column=1)
+        equantity = tk.Entry(lower)
+        equantity.grid(row=1, column=3)
+
+        #eunit = tk.Entry(lower)
+        #eunit.grid(row=0, column=5)
+
+        eunit = ttk.Combobox(lower, width=18)
+        eunit.set("Select Unit")
+        eunit['values'] = ("Kilo", "Grams", "Liter", "Stick")
+        eunit.grid(row=0, column=5)
+
+
+        add = tk.Button(lower, text="Add Item", font=LARGE_FONT, command=add)
+        add.grid(row=2, column=0, padx=4, pady=5)
+        modify = tk.Button(lower, text="Update", font=LARGE_FONT, command=update)
+        modify.grid(row=2, column=1, padx=4)
+        delete = tk.Button(lower, text="Delete", font=LARGE_FONT, command=delete)
+        delete.grid(row=2, column=2, padx=4)
+        clear = tk.Button(lower, text="Clear", font=LARGE_FONT, command=clear)
+        clear.grid(row=2, column=3, padx=4)
+
+        displaydata()
+
+        my_tree.bind("<ButtonRelease-1>", select_record)
 
 
 class Supplier(tk.Frame):
@@ -378,7 +606,7 @@ class Supplier(tk.Frame):
         address_entry = tk.Entry(lower)
         address_entry.grid(row=1, column=3)
 
-        add = tk.Button(lower, text="Add Item", font=LARGE_FONT, command=add)
+        add = tk.Button(lower, text="Add Order", font=LARGE_FONT, command=add)
         add.grid(row=2, column=0, padx=4, pady=5)
         modify = tk.Button(lower, text="Update", font=LARGE_FONT, command=update)
         modify.grid(row=2, column=1, padx=4)
