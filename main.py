@@ -242,6 +242,20 @@ class Supplies(tk.Frame):
             equantity.insert(0, value[5])
             eunit.insert(0, value[6])
 
+        def recieved():
+            
+
+
+            c = sqlite3.connect("IMS.db")
+            cursor = c.cursor()
+            cursor.execute("""select recieved from Orders""")
+            exsa = cursor.fetchall()
+            if exsa == 0:
+                cursor.execute("""select quantity from Orders where """)
+
+            print(exsa[0][0])
+            return
+
 
         # add database
         dbSetup()
@@ -378,6 +392,8 @@ class Supplies(tk.Frame):
         delete.grid(row=2, column=2, padx=4)
         clear = tk.Button(lower, text="Clear", font=LARGE_FONT, command=clear)
         clear.grid(row=2, column=3, padx=4)
+        recieved = tk.Button(lower, text="Recieved", font=LARGE_FONT, command=recieved)
+        recieved.grid(row=2, column=4, padx=4)
 
         displaydata()
 
