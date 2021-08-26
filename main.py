@@ -1036,6 +1036,7 @@ class Menu(tk.Frame):
             coffee_namee.insert(0, value[1])
             size2.insert(0, value[2])
 
+
         def refresh():
             delete_data()
             displaydata()
@@ -1110,8 +1111,6 @@ class Menu(tk.Frame):
         # configure scrollbar
         tree_scroll2.config(command=my_tree2.yview)
 
-
-
         # Division TreeView
         def addcoffee():
             add()
@@ -1124,6 +1123,9 @@ class Menu(tk.Frame):
         def deletecoffee():
             delete()
             return
+
+        def selectcomponent():
+            open()
 
 
 
@@ -1161,7 +1163,7 @@ class Menu(tk.Frame):
                 return
 
             top = Toplevel()
-            top.title('Coffee')
+            top.title('Choose Coffee Components')
             top.geometry('720x440')
 
             # Student TreeView
@@ -1217,6 +1219,8 @@ class Menu(tk.Frame):
             popcoffee_name.grid(row=0, column=2, padx=4)
             popsize = tk.Label(poplower, text="Size")
             popsize.grid(row=0, column=4, padx=4)
+            quantity = tk.Label(poplower, text="Quantity")
+            quantity.grid(row=0, column=6, padx=4)
 
             popcoffeeIDe = Entry(poplower, borderwidth=2)
             popcoffeeIDe.grid(row=0, column=1, pady=2)
@@ -1224,6 +1228,17 @@ class Menu(tk.Frame):
             popcoffee_namee.grid(row=0, column=3, pady=2)
             popsize2 = Entry(poplower, borderwidth=2)
             popsize2.grid(row=0, column=5, pady=2)
+            quantity = Entry(poplower, borderwidth=2)
+            quantity.grid(row=0, column=7, pady=2)
+
+            popcoffeeIDe.insert(0, coffeeIDe.get())
+            popcoffee_namee.insert(0, coffee_namee.get())
+            popsize2.insert(0, size2.get())
+
+
+
+
+        my_tree.bind("<ButtonRelease-1>", select_record)
 
         # Frame for upper buttons
         upperSide = tk.Frame(self)
@@ -1247,11 +1262,14 @@ class Menu(tk.Frame):
         add_ord = tk.Button(bottomSide, text="Add Coffee", font=LARGE_FONT, command=addcoffee)
         add_ord.grid(row=0, column=0, padx=5)
 
+        sel_com = tk.Button(bottomSide, text="Select Components", font=LARGE_FONT, command=selectcomponent)
+        sel_com.grid(row=0, column=1, padx=5)
+
         del_ord = tk.Button(bottomSide, text="Delete Coffee", font=LARGE_FONT, command=deletecoffee)
-        del_ord.grid(row=0, column=1, padx=5)
+        del_ord.grid(row=0, column=2, padx=5)
 
         upd_ord = tk.Button(bottomSide, text="Delete Component", font=LARGE_FONT, command=deletecomponent)
-        upd_ord.grid(row=0, column=2, padx=5)
+        upd_ord.grid(row=0, column=3, padx=5)
 
         # frame for entries
         lower = tk.Frame(self)
@@ -1273,8 +1291,6 @@ class Menu(tk.Frame):
         coffeeIDe.grid(row=0, column=1, pady=2)
         coffee_namee = Entry(lower, borderwidth=2)
         coffee_namee.grid(row=0, column=3, pady=2)
-        size2 = Entry(lower, borderwidth=2)
-        size2.grid(row=0, column=3, pady=2)
 
         delete_data()
         displaydata()
