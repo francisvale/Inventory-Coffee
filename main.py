@@ -943,6 +943,103 @@ class Menu(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+
+        def displaydata():
+            conn = sqlite3.connect('IMS.db')
+
+            c = conn.cursor()
+
+            c.execute("SELECT * FROM Coffee")
+            records = c.fetchall()
+
+            global count
+            count = 0
+
+            for record in records:
+                if count % 2 == 0:
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2]),
+                                   tags=('evenrow',))
+                else:
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],),
+                                   tags=('oddrow',))
+                count += 1
+
+            return
+
+        def delete_data():
+            for record in my_tree.get_children():
+                my_tree.delete(record)
+
+        def add():
+            if coffeeIDe.get() == '':
+                return messagebox.showwarning("Warning!", "Make sure to input all entries correctly")
+            elif coffee_namee.get() == '':
+                return messagebox.showwarning("Warning!", "Make sure to input all entries correctly")
+            elif size2.get() == '' or size2.get() == 'Select Size':
+                return messagebox.showwarning("Warning!", "Make sure to input all entries correctly")
+
+            # connect the database
+            conn = sqlite3.connect('IMS.db')
+            c = conn.cursor()
+
+            c.execute("INSERT INTO Coffee VALUES (:coffee_id, :coffee_name, :size)",
+                      {
+                          'coffee_id': coffeeIDe.get(),
+                          'coffee_name': coffee_namee.get(),
+                          'size': size2.get(),
+                      }
+                      )
+
+            # Commit changes
+            conn.commit()
+
+            # Close Connection
+            conn.close()
+
+            delete_data()
+            displaydata()
+
+            return
+
+
+        def delete():
+            if not messagebox.askyesno("Delete Confirmation", "Are you sure?"):
+                return
+            else:
+                conn = sqlite3.connect("IMS.db")
+                c = conn.cursor()
+                selected = my_tree.focus()
+                values = my_tree.item(selected, 'values')
+
+                c.execute("DELETE from Coffee WHERE coffee_id=?", (values[0],))
+
+                conn.commit()
+                conn.close()
+
+            delete_data()
+            displaydata()
+
+        def clear():
+            coffeeIDe.delete(0, END)
+            coffee_namee.delete(0, END)
+            size2.delete(0, END)
+
+        def select_record(e):
+            coffeeIDe.delete(0, END)
+            coffee_namee.delete(0, END)
+            size2.delete(0, END)
+
+            pick = my_tree.focus()
+            value = my_tree.item(pick, 'value')
+
+            coffeeIDe.insert(0, value[0])
+            coffee_namee.insert(0, value[1])
+            size2.insert(0, value[2])
+
+        def refresh():
+            delete_data()
+            displaydata()
+
         label = tk.Label(self, text="Menu", font=LARGE_FONT, bg="#98EFDA")
         label.grid(row=0, column=0, columnspan=2, pady=10, padx=40, sticky='w')
 
@@ -1013,15 +1110,19 @@ class Menu(tk.Frame):
         # configure scrollbar
         tree_scroll2.config(command=my_tree2.yview)
 
+
+
         # Division TreeView
         def addcoffee():
+            add()
             open()
             return
 
-        def updatecoffee():
+        def deletecomponent():
             return
 
         def deletecoffee():
+            delete()
             return
 
 
@@ -1117,16 +1218,12 @@ class Menu(tk.Frame):
             popsize = tk.Label(poplower, text="Size")
             popsize.grid(row=0, column=4, padx=4)
 
-            popsize2 = ttk.Combobox(poplower, width=18)
-            popsize2.set("Select Size")
-            popsize2['values'] = ("Small", "Medium", "Large")
-            popsize2.grid(row=0, column=5, pady=2)
-
             popcoffeeIDe = Entry(poplower, borderwidth=2)
             popcoffeeIDe.grid(row=0, column=1, pady=2)
             popcoffee_namee = Entry(poplower, borderwidth=2)
             popcoffee_namee.grid(row=0, column=3, pady=2)
-
+            popsize2 = Entry(poplower, borderwidth=2)
+            popsize2.grid(row=0, column=5, pady=2)
 
         # Frame for upper buttons
         upperSide = tk.Frame(self)
@@ -1150,11 +1247,11 @@ class Menu(tk.Frame):
         add_ord = tk.Button(bottomSide, text="Add Coffee", font=LARGE_FONT, command=addcoffee)
         add_ord.grid(row=0, column=0, padx=5)
 
-        upd_ord = tk.Button(bottomSide, text="Update Coffee", font=LARGE_FONT, command=updatecoffee)
-        upd_ord.grid(row=0, column=1, padx=5)
-
         del_ord = tk.Button(bottomSide, text="Delete Coffee", font=LARGE_FONT, command=deletecoffee)
-        del_ord.grid(row=0, column=2, padx=5)
+        del_ord.grid(row=0, column=1, padx=5)
+
+        upd_ord = tk.Button(bottomSide, text="Delete Component", font=LARGE_FONT, command=deletecomponent)
+        upd_ord.grid(row=0, column=2, padx=5)
 
         # frame for entries
         lower = tk.Frame(self)
@@ -1176,6 +1273,11 @@ class Menu(tk.Frame):
         coffeeIDe.grid(row=0, column=1, pady=2)
         coffee_namee = Entry(lower, borderwidth=2)
         coffee_namee.grid(row=0, column=3, pady=2)
+        size2 = Entry(lower, borderwidth=2)
+        size2.grid(row=0, column=3, pady=2)
+
+        delete_data()
+        displaydata()
 
 
 
