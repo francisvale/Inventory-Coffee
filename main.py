@@ -1036,6 +1036,8 @@ class Menu(tk.Frame):
             coffee_namee.insert(0, value[1])
             size2.insert(0, value[2])
 
+            delete_datacomponents2()
+            displaydatacomponents2()
 
         def refresh():
             delete_data()
@@ -1079,7 +1081,7 @@ class Menu(tk.Frame):
         # --------------------------------------
 
         tree_frame2 = tk.Frame(self)
-        tree_frame2.grid(row=2, column=4, columnspan=2, rowspan=3, pady=10, padx=11)
+        tree_frame2.grid(row=2, column=4, columnspan=2, rowspan=3, pady=10, padx=10)
 
         comp = tk.Label(self, text="Coffee Component", font=LARGE_FONT, bg="#98EFDA" )
         comp.grid(row=1, column=4)
@@ -1089,7 +1091,7 @@ class Menu(tk.Frame):
         tree_scroll2.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=10)
+        my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=9)
 
         # Defining Columns
         my_tree2['columns'] = ('Item Code', 'Item Name', 'Qty')
@@ -1118,6 +1120,21 @@ class Menu(tk.Frame):
             return
 
         def deletecomponent():
+            if not messagebox.askyesno("Delete Confirmation", "Are you sure?"):
+                return
+            else:
+                conn = sqlite3.connect("IMS.db")
+                c = conn.cursor()
+                selected = my_tree2.focus()
+                values = my_tree2.item(selected, 'values')
+
+                c.execute("DELETE from Coffee_Components WHERE item_code=?", (values[0],))
+
+                conn.commit()
+                conn.close()
+
+            delete_datacomponents2()
+            displaydatacomponents2()
             return
 
         def deletecoffee():
@@ -1127,7 +1144,37 @@ class Menu(tk.Frame):
         def selectcomponent():
             open()
 
+        #deduct components of coffee to whole inventory
+        def deduct():
+            return
 
+        def displaydatacomponents2():
+            conn = sqlite3.connect('IMS.db')
+
+            c = conn.cursor()
+
+            c.execute("SELECT * FROM Coffee_Components where coffee_id=?", (coffeeIDe.get(),))
+            records = c.fetchall()
+
+            global count
+            count = 0
+
+            for record in records:
+                if count % 2 == 0:
+                    my_tree2.insert(parent='', index='end', iid=count, text='',
+                                    values=(record[1], record[2], record[3]),
+                                    tags=('evenrow',))
+                else:
+                    my_tree2.insert(parent='', index='end', iid=count, text='',
+                                    values=(record[1], record[2], record[3]),
+                                    tags=('oddrow',))
+                count += 1
+
+            return
+
+        def delete_datacomponents2():
+            for record in my_tree2.get_children():
+                my_tree2.delete(record)
 
         def open():
             global top
@@ -1158,9 +1205,77 @@ class Menu(tk.Frame):
                                         tags=('oddrow',))
                     count += 1
 
-            def addcomponent():
+            def displaydatacomponents():
+                conn = sqlite3.connect('IMS.db')
+
+                c = conn.cursor()
+
+                c.execute("SELECT * FROM Coffee_Components where coffee_id=?", (coffeeIDe.get(),))
+                records = c.fetchall()
+
+                global count
+                count = 0
+
+                for record in records:
+                    if count % 2 == 0:
+                        my_tree2.insert(parent='', index='end', iid=count, text='',
+                                        values=(record[1], record[2], record[3]),
+                                        tags=('evenrow',))
+                    else:
+                        my_tree2.insert(parent='', index='end', iid=count, text='',
+                                        values=(record[1], record[2], record[3]),
+                                        tags=('oddrow',))
+                    count += 1
 
                 return
+
+            def delete_datacomponents():
+                for record in my_tree2.get_children():
+                    my_tree2.delete(record)
+
+
+            def addcomponent():
+                if quantitye.get() == '':
+                    return messagebox.showwarning("Warning!", "Make sure to input all entries correctly")
+                elif popcoffeeIDe.get() == '':
+                    return messagebox.showwarning("Warning!", "Make sure to input all entries correctly")
+                elif itemcodee.get() == '':
+                    return messagebox.showwarning("Warning!", "Make sure to input all entries correctly")
+
+                # connect the database
+                conn = sqlite3.connect('IMS.db')
+                c = conn.cursor()
+
+                c.execute("INSERT INTO Coffee_Components VALUES (:coffee_id, :item_code, :item_name, :quantity)",
+                          {
+                              'coffee_id': popcoffeeIDe.get(),
+                              'item_code': itemcodee.get(),
+                              'item_name': itemnamee.get(),
+                              'quantity': quantitye.get(),
+                          }
+                          )
+
+                # Commit changes
+                conn.commit()
+
+                delete_datacomponents()
+                displaydatacomponents()
+
+                # Close Connection
+                conn.close()
+
+                return
+
+            def select_record(e):
+                itemcodee.delete(0, END)
+                itemnamee.delete(0, END)
+                quantitye.delete(0, END)
+
+                pick = my_tree3.focus()
+                value = my_tree3.item(pick, 'value')
+
+                itemcodee.insert(0, value[0])
+                itemnamee.insert(0, value[1])
 
             top = Toplevel()
             top.title('Choose Coffee Components')
@@ -1204,7 +1319,7 @@ class Menu(tk.Frame):
 
             # frame bottom side
             bottom = tk.Frame(top)
-            bottom.grid(row=3, column=0, columnspan=6)
+            bottom.grid(row=4, column=0, columnspan=6)
 
             add_comp = tk.Button(bottom, text="Add Component", font=LARGE_FONT, command=addcomponent)
             add_comp.grid(row=0, column=0, padx=5)
@@ -1219,8 +1334,6 @@ class Menu(tk.Frame):
             popcoffee_name.grid(row=0, column=2, padx=4)
             popsize = tk.Label(poplower, text="Size")
             popsize.grid(row=0, column=4, padx=4)
-            quantity = tk.Label(poplower, text="Quantity")
-            quantity.grid(row=0, column=6, padx=4)
 
             popcoffeeIDe = Entry(poplower, borderwidth=2)
             popcoffeeIDe.grid(row=0, column=1, pady=2)
@@ -1228,14 +1341,30 @@ class Menu(tk.Frame):
             popcoffee_namee.grid(row=0, column=3, pady=2)
             popsize2 = Entry(poplower, borderwidth=2)
             popsize2.grid(row=0, column=5, pady=2)
-            quantity = Entry(poplower, borderwidth=2)
-            quantity.grid(row=0, column=7, pady=2)
 
             popcoffeeIDe.insert(0, coffeeIDe.get())
             popcoffee_namee.insert(0, coffee_namee.get())
             popsize2.insert(0, size2.get())
 
+            # frame for item datas
+            poplower2 = tk.Frame(top)
+            poplower2.grid(row=3, column=0, columnspan=6)
 
+            itemcode = tk.Label(poplower2, text="itemcode")
+            itemcode.grid(row=0, column=0, padx=4)
+            itemname = tk.Label(poplower2, text="itemname")
+            itemname.grid(row=0, column=2, padx=4)
+            quantity = tk.Label(poplower2, text="Quantity")
+            quantity.grid(row=0, column=4, padx=4)
+
+            itemcodee = Entry(poplower2, borderwidth=2)
+            itemcodee.grid(row=0, column=1, pady=2)
+            itemnamee = Entry(poplower2, borderwidth=2)
+            itemnamee.grid(row=0, column=3, pady=2)
+            quantitye = Entry(poplower2, borderwidth=2)
+            quantitye.grid(row=0, column=5, pady=2)
+
+            my_tree3.bind("<ButtonRelease-1>", select_record)
 
 
         my_tree.bind("<ButtonRelease-1>", select_record)
@@ -1270,6 +1399,9 @@ class Menu(tk.Frame):
 
         upd_ord = tk.Button(bottomSide, text="Delete Component", font=LARGE_FONT, command=deletecomponent)
         upd_ord.grid(row=0, column=3, padx=5)
+
+        deduct = tk.Button(bottomSide, text="Deduct to Inventory", font=LARGE_FONT, command=deduct)
+        deduct.grid(row=1, column=1, padx=5)
 
         # frame for entries
         lower = tk.Frame(self)
