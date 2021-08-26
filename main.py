@@ -1146,15 +1146,56 @@ class Menu(tk.Frame):
 
         #deduct components of coffee to whole inventory
         def deduct():
-            c.execute("SELECT i.item_name, i.quantity as inventory, c.quantity as components, "
-                      "i.quantity-c.components as remaining"
-                      "FROM Inventory as i"
-                      "JOIN Coffe_Components as c"
-                      "Where c.coffee_id=?", (coffeeIDe.get(),))
+            conn = sqlite3.connect("IMS.db")
+            c = conn.cursor()
+            c.execute("""SELECT c.coffee_id, c.item_code, c.item_name, c.quantity as components, 
+            i.quantity as inventory
+            FROM Coffee_Components c
+            JOIN Inventory i
+            ON c.item_code = i.item_code
+            ORDER BY i.item_code""")
+            hex = c.fetchall()
+
+            holder = []
+            for i in hex:
+                if coffeeIDe.get() in i:
+                    holder.append(i)
+            print(holder)
+            itemcodeholder = []
+            holder2 = []
+            holder3 = []
+            for i in holder:
+                holder2.append(i[3])
+            for i in holder:
+                holder3.append(i[4])
+            for i in holder:
+                itemcodeholder.append(i[1])
+            count = 0
+            for i in holder2:
+                holder2[count] = holder2[count]*int(quantityentry.get())
+                count+=1
+            count2 = 0
+            for i in holder3:
+                holder3[count2] = holder3[count2]-holder2[count2]
+                count2+=1
+            print(holder3)
+            flag = 0
+            for i in holder3:
+                if i <= 0:
+                    flag+=1
+            if flag>0:
+                return messagebox.showinfo("Status", "Not enough items in inventory")
+            else:
+                count3 = 0
+                for i in holder3:
+                    conn = sqlite3.connect("IMS.db")
+                    c = conn.cursor()
+                    c.execute("UPDATE Inventory SET quantity=? WHERE item_code=?", (int(i), itemcodeholder[count3],))
+                    conn.commit()
+                    count3+=1
+                return messagebox.showinfo("Status", "Inventory Updated!")
 
 
-
-            return
 
         def displaydatacomponents2():
             conn = sqlite3.connect('IMS.db')
@@ -1394,7 +1435,7 @@ class Menu(tk.Frame):
 
         # frame for bottom buttons
         bottomSide = tk.Frame(self)
-        bottomSide.grid(row=6, column=0, columnspan=6)
+        bottomSide.grid(row=6, column=0, columnspan=6, pady=10)
 
         add_ord = tk.Button(bottomSide, text="Add Coffee", font=LARGE_FONT, command=addcoffee)
         add_ord.grid(row=0, column=0, padx=5)
@@ -1422,15 +1463,22 @@ class Menu(tk.Frame):
         size = tk.Label(lower, text="Size")
         size.grid(row=0, column=4, padx=4)
 
+        quantitylabel = tk.Label(lower, text="Quantity")
+        quantitylabel.grid(row=0, column=6, padx=4)
+
         size2 = ttk.Combobox(lower, width=18)
         size2.set("Select Size")
         size2['values'] = ("Small", "Medium", "Large")
         size2.grid(row=0, column=5, pady=2)
 
-        coffeeIDe = Entry(lower, borderwidth=2)
+        coffeeIDe = Entry(lower, borderwidth=2, width=10)
         coffeeIDe.grid(row=0, column=1, pady=2)
         coffee_namee = Entry(lower, borderwidth=2)
         coffee_namee.grid(row=0, column=3, pady=2)
+        quantityentry = Entry(lower, borderwidth=2, width=10)
+        quantityentry.grid(row=0, column=7, pady=2)
+
+        quantityentry.insert(0, 1)
 
         delete_data()
         displaydata()
