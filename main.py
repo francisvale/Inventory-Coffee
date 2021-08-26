@@ -433,8 +433,8 @@ class Supplies(tk.Frame):
         delete.grid(row=2, column=2, padx=4)
         clear = tk.Button(lower, text="Clear", font=LARGE_FONT, command=clear)
         clear.grid(row=2, column=3, padx=4)
-        recieved = tk.Button(lower, text="Refresh", font=LARGE_FONT, command=refresh)
-        recieved.grid(row=2, column=4, padx=4)
+        refresh = tk.Button(lower, text="Refresh", font=LARGE_FONT, command=refresh)
+        refresh.grid(row=2, column=4, padx=4)
         recieved = tk.Button(lower, text="Recieved", font=LARGE_FONT, command=recieved)
         recieved.grid(row=2, column=5, padx=4)
 
@@ -1054,7 +1054,7 @@ class Menu(tk.Frame):
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=13)
+        my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, height=12)
 
         # Defining Columns
         my_tree['columns'] = ('CoffeeID', 'Coffee Name', "Size")
@@ -1091,7 +1091,7 @@ class Menu(tk.Frame):
         tree_scroll2.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Add TreeView
-        my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=9)
+        my_tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll.set, height=10)
 
         # Defining Columns
         my_tree2['columns'] = ('Item Code', 'Item Name', 'Qty')
@@ -1146,6 +1146,14 @@ class Menu(tk.Frame):
 
         #deduct components of coffee to whole inventory
         def deduct():
+            c.execute("SELECT i.item_name, i.quantity as inventory, c.quantity as components, "
+                      "i.quantity-c.components as remaining"
+                      "FROM Inventory as i"
+                      "JOIN Coffe_Components as c"
+                      "Where c.coffee_id=?", (coffeeIDe.get(),))
+
+
+
             return
 
         def displaydatacomponents2():
