@@ -1055,6 +1055,10 @@ class Menu(tk.Frame):
                                         tags=('oddrow',))
                     count += 1
 
+            def addcomponent():
+
+                return
+
             top = Toplevel()
             top.title('Coffee')
             top.geometry('720x440')
@@ -1094,6 +1098,34 @@ class Menu(tk.Frame):
             tree_scroll.config(command=my_tree3.yview)
 
             displaydataInv()
+
+            # frame bottom side
+            bottom = tk.Frame(top)
+            bottom.grid(row=3, column=0, columnspan=6)
+
+            add_comp = tk.Button(bottom, text="Add Component", font=LARGE_FONT, command=addcomponent)
+            add_comp.grid(row=0, column=0, padx=5)
+
+            # frame for entries
+            poplower = tk.Frame(top)
+            poplower.grid(row=2, column=0, columnspan=6)
+
+            popcoffeeID = tk.Label(poplower, text="coffeeID")
+            popcoffeeID.grid(row=0, column=0, padx=4)
+            popcoffee_name = tk.Label(poplower, text="Coffee Name")
+            popcoffee_name.grid(row=0, column=2, padx=4)
+            popsize = tk.Label(poplower, text="Size")
+            popsize.grid(row=0, column=4, padx=4)
+
+            popsize2 = ttk.Combobox(poplower, width=18)
+            popsize2.set("Select Size")
+            popsize2['values'] = ("Small", "Medium", "Large")
+            popsize2.grid(row=0, column=5, pady=2)
+
+            popcoffeeIDe = Entry(poplower, borderwidth=2)
+            popcoffeeIDe.grid(row=0, column=1, pady=2)
+            popcoffee_namee = Entry(poplower, borderwidth=2)
+            popcoffee_namee.grid(row=0, column=3, pady=2)
 
 
         # Frame for upper buttons
