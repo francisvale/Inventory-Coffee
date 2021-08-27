@@ -108,12 +108,12 @@ class Supplies(tk.Frame):
 
             for record in records:
                 if count % 2 == 0:
-                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], '₱'+str(record[2]),
                                                                                        record[3], record[4],
                                                                                        record[5], record[6]),
                                    tags=('evenrow',))
                 else:
-                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2],
+                    my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], '₱'+str(record[2]),
                                                                                        record[3], record[4],
                                                                                        record[5], record[6]),
                                    tags=('oddrow',))
@@ -212,7 +212,7 @@ class Supplies(tk.Frame):
                 selected = my_tree.focus()
                 values = my_tree.item(selected, 'values')
 
-                c.execute("DELETE from Orders where time=?", (values[3],))
+                c.execute("DELETE from Orders where time=? and date=?", (values[3],values[4]))
 
                 conn.commit()
                 conn.close()
@@ -234,12 +234,23 @@ class Supplies(tk.Frame):
             equantity.delete(0, END)
             eunit.delete(0, END)
 
+
             pick = my_tree.focus()
             value = my_tree.item(pick, 'value')
 
+            c = sqlite3.connect("IMS.db")
+            cursor = c.cursor()
+            cursor.execute("select recieved from Orders where time=? and date=?", ((value[3],value[4],)))
+            exsa = cursor.fetchall()
+
+            if exsa[0][0] == 0:
+                statuse.insert(0,"Not recieved yet")
+            else:
+                statuse.insert(0, "Already added to inventory")
+
             itemname_entry.insert(0, value[0])
             supname_entry.insert(0, value[1])
-            eprice.insert(0, value[2])
+            eprice.insert(0, value[2][1:])
             equantity.insert(0, value[5])
             eunit.insert(0, value[6])
 
@@ -252,7 +263,7 @@ class Supplies(tk.Frame):
             cursor = c.cursor()
             cursor.execute("select recieved from Orders where time=?", ((values[3],)))
             exsa = cursor.fetchall()
-            print(exsa[0][0])
+
 
 
             if exsa[0][0] == 0:
@@ -262,9 +273,9 @@ class Supplies(tk.Frame):
                 cursor.execute("SELECT quantity from Inventory where item_name=?",((values[0],)))
                 hold2 = cursor.fetchall()[0][0]
                 hold3 = int(hold)+int(hold2)
-                print(hold3)
                 cursor.execute("UPDATE Inventory SET quantity=? WHERE item_name=?", (int(hold3),values[0],))
                 c.commit()
+                messagebox.showinfo("Notice", "Item added to the inventory.")
             else:
                 messagebox.showinfo("Notice", "Item/s already added to inventory.")
 
@@ -415,6 +426,11 @@ class Supplies(tk.Frame):
         eprice.grid(row=1, column=1)
         equantity = tk.Entry(lower)
         equantity.grid(row=1, column=3)
+
+        status = tk.Label(lower, text="Status")
+        status.grid(row=1, column=4)
+        statuse = tk.Entry(lower)
+        statuse.grid(row=1, column=5)
 
         #eunit = tk.Entry(lower)
         #eunit.grid(row=0, column=5)
@@ -1225,6 +1241,13 @@ class Menu(tk.Frame):
             for record in my_tree2.get_children():
                 my_tree2.delete(record)
 
+        def clear():
+            coffeeIDe.delete()
+            coffee_namee.delete()
+            size2.insert(0, "Select Size")
+            quantityentry.insert(0,"1")
+            return
+
         def open():
             global top
             if top is not None:
@@ -1451,6 +1474,9 @@ class Menu(tk.Frame):
 
         deduct = tk.Button(bottomSide, text="Deduct to Inventory", font=LARGE_FONT, command=deduct)
         deduct.grid(row=1, column=1, padx=5)
+
+        clear = tk.Button(bottomSide, text="Clear", font=LARGE_FONT, command=clear)
+        clear.grid(row=1, column=2, padx=5)
 
         # frame for entries
         lower = tk.Frame(self)
