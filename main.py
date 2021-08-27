@@ -192,10 +192,10 @@ class Supplies(tk.Frame):
             data5 = eunit.get()
 
             selected = my_tree.selection()
-            my_tree.item(selected, values=(data1, data2, data3, data4))
+            values = my_tree.item(selected, 'values')
             c.execute(
-                "UPDATE Orders set  item_name=?, supplier_name=?, price=?, quantity=?, unit=?",
-                (data1, data2, data3, data4, data5))
+                "UPDATE Orders set  item_name=?, supplier_name=?, price=?, quantity=?, unit=? where time=? and date=?",
+                (data1, data2, data3, data4, data5, values[3], values[4]))
 
             conn.commit()
             conn.close()
@@ -233,6 +233,7 @@ class Supplies(tk.Frame):
             eprice.delete(0, END)
             equantity.delete(0, END)
             eunit.delete(0, END)
+            statuse.delete(0, END)
 
 
             pick = my_tree.focus()
@@ -246,7 +247,7 @@ class Supplies(tk.Frame):
             if exsa[0][0] == 0:
                 statuse.insert(0,"Not recieved yet")
             else:
-                statuse.insert(0, "Already added to inventory")
+                statuse.insert(0, "Already added")
 
             itemname_entry.insert(0, value[0])
             supname_entry.insert(0, value[1])
@@ -1035,11 +1036,6 @@ class Menu(tk.Frame):
             delete_data()
             displaydata()
 
-        def clear():
-            coffeeIDe.delete(0, END)
-            coffee_namee.delete(0, END)
-            size2.delete(0, END)
-
         def select_record(e):
             coffeeIDe.delete(0, END)
             coffee_namee.delete(0, END)
@@ -1242,11 +1238,12 @@ class Menu(tk.Frame):
                 my_tree2.delete(record)
 
         def clear():
-            coffeeIDe.delete()
-            coffee_namee.delete()
+            coffeeIDe.delete(0, END)
+            coffee_namee.delete(0, END)
+            size2.delete(0, END)
+            quantityentry.delete(0, END)
             size2.insert(0, "Select Size")
-            quantityentry.insert(0,"1")
-            return
+            quantityentry.insert(0, "1")
 
         def open():
             global top
